@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dota 2 Item Advisor</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+  <script defer src="{{ url_for('static', path='/app.js') }}"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">LOCAL COMPANION</p>
+      <h1>Dota 2 Item Advisor</h1>
+      <p>Advisory only · visible HUD data and manual context · no game automation</p>
+    </div>
+    <div class="version-badge">Data: {{ data_version }}<br><small>demonstration, not live-patch data</small></div>
+  </header>
+
+  <main class="layout">
+    <section class="panel setup-panel">
+      <div class="section-heading">
+        <div><p class="eyebrow">INPUT</p><h2>Match context</h2></div>
+        <a href="/calibration">Calibrate HUD regions</a>
+      </div>
+      <form id="manual-form" class="form-grid">
+        <label>Hero<select id="hero" required></select></label>
+        <label>Role<select id="role" required></select></label>
+        <label class="wide">Enemy heroes<select id="enemies" multiple size="5"></select><small>Ctrl-click to select multiple.</small></label>
+        <label>Gold<input id="gold" type="number" min="0" max="100000" value="1200" required></label>
+        <label>Game time<input id="game-time" type="text" value="15:00" placeholder="MM:SS" required></label>
+        <label>Level<input id="level" type="number" min="1" max="30" placeholder="Optional"></label>
+        <label class="wide">Current inventory<select id="inventory" multiple size="5"></select><small>Select completed items and components you currently hold.</small></label>
+        <label class="wide">Other inventory items<input id="inventory-extra" type="text" placeholder="Power Treads, Magic Wand"></label>
+        <div class="actions wide">
+          <button type="submit" class="primary">Save context & recommend</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel capture-panel">
+      <div class="section-heading">
+        <div><p class="eyebrow">CAPTURE</p><h2>Windows monitor</h2></div>
+        <span id="capture-pill" class="status-pill">Stopped</span>
+      </div>
+      <div class="form-grid compact">
+        <label>Monitor<select id="monitor"></select></label>
+        <label>Interval (seconds)<input id="interval" type="number" min="1" max="300" step="0.5" value="5"></label>
+      </div>
+      <div class="actions">
+        <button id="capture-start" class="primary">Start capture</button>
+        <button id="capture-stop">Stop</button>
+        <button id="capture-once">Capture once</button>
+      </div>
+      <label class="upload">Analyze an uploaded screenshot
+        <input id="screenshot" type="file" accept="image/png,image/jpeg">
+      </label>
+      <div id="capture-meta" class="muted"></div>
+      <div id="debug-crops" class="crop-grid"></div>
+    </section>
+
+    <section class="panel state-panel">
+      <div class="section-heading">
+        <div><p class="eyebrow">LATEST</p><h2>Trusted match state</h2></div>
+        <span id="last-update" class="muted">No state yet</span>
+      </div>
+      <div id="warnings" class="warnings" hidden></div>
+      <div id="state" class="empty-state">Save manual context to begin.</div>
+    </section>
+
+    <section class="panel recommendations-panel">
+      <div class="section-heading">
+        <div><p class="eyebrow">RANKED</p><h2>Item recommendations</h2></div>
+        <button id="recommend">Refresh recommendations</button>
+      </div>
+      <div id="recommendations" class="recommendations empty-state">No recommendations yet.</div>
+    </section>
+
+    <section class="panel retrieval-panel">
+      <div class="section-heading"><div><p class="eyebrow">EVIDENCE</p><h2>Retrieved strategy notes</h2></div></div>
+      <div id="retrieval" class="passages empty-state">No passages retrieved yet.</div>
+    </section>
+  </main>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
+

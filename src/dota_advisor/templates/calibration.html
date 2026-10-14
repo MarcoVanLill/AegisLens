@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HUD Calibration · Dota 2 Item Advisor</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+  <script defer src="{{ url_for('static', path='/calibration.js') }}"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div><p class="eyebrow">CONFIGURATION</p><h1>HUD region calibration</h1><p>Normalized coordinates scale with the selected monitor resolution.</p></div>
+    <a class="button-link" href="/">Back to dashboard</a>
+  </header>
+  <main class="calibration-layout">
+    <section class="panel">
+      <h2>Reference frame</h2>
+      <p class="muted">The colored boxes show where the app crops inventory, gold, and game time. Adjust values between 0 and 1, then save.</p>
+      <div id="frame-preview" class="frame-preview"></div>
+      <p id="layout-notes" class="muted"></p>
+    </section>
+    <section class="panel">
+      <form id="regions-form">
+        <label>Layout ID<input id="layout-id" required></label>
+        <label>Notes<textarea id="notes" rows="3"></textarea></label>
+        <div id="region-fields"></div>
+        <div class="actions"><button class="primary" type="submit">Save regions</button><button id="reload" type="button">Reload</button></div>
+      </form>
+    </section>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
+

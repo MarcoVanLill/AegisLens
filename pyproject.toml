@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "AegisLens"
+version = "0.1.0"
+description = "A local, advisory-only Dota 2 item recommendation companion."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.120,<1.0",
+    "google-genai>=1.47,<3.0",
+    "jinja2>=3.1,<4.0",
+    "mss>=10.0,<11.0",
+    "numpy>=2.1,<3.0",
+    "opencv-python-headless>=4.10,<5.0",
+    "pillow>=11.0,<13.0",
+    "pydantic>=2.10,<3.0",
+    "pydantic-settings>=2.7,<3.0",
+    "python-multipart>=0.0.20,<1.0",
+    "uvicorn[standard]>=0.34,<1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "httpx>=0.28,<1.0",
+    "pytest>=8.3,<10.0",
+    "pytest-asyncio>=0.25,<2.0",
+    "ruff>=0.9,<1.0",
+]
+
+[project.scripts]
+dota-advisor = "dota_advisor.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dota_advisor"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/dota_advisor/templates" = "dota_advisor/templates"
+"src/dota_advisor/static" = "dota_advisor/static"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+asyncio_mode = "auto"
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["B008"]
+
