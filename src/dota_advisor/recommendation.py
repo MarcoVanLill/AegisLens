@@ -106,7 +106,7 @@ class RecommendationEngine:
         state: MatchState,
         passages: Sequence[RetrievedPassage],
     ) -> list[Recommendation]:
-        items = self.item_repository.list_items()
+        items = [item for item in self.item_repository.list_items() if item.recommendable]
         heroes = self.item_repository.list_heroes()
         profile = self._hero_profile(state, heroes)
         threats = self.infer_threats(state)
@@ -119,6 +119,8 @@ class RecommendationEngine:
         for item in items:
             counters = {counter.casefold() for counter in item.counters}
             addressed = [threat for threat in threats if threat.casefold() in counters]
+            if "consumable" in {tag.casefold() for tag in item.tags} and not addressed:
+                continue
             threat_score = min(1.0, len(addressed) / max(1, min(3, len(threats))))
             hero_score = (
                 1.0

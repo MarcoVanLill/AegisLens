@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AegisLens Companion</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='/compact.css') }}">
+  <script defer src="{{ url_for('static', path='/compact.js') }}"></script>
+</head>
+<body>
+  <header>
+    <div>
+      <p class="eyebrow">AEGISLENS</p>
+      <h1>What to buy next</h1>
+    </div>
+    <span id="connection" class="status offline">Offline</span>
+  </header>
+
+  <section id="match-state" class="state-line">Waiting for match context…</section>
+  <section id="message" class="message" hidden></section>
+  <main id="recommendations" aria-live="polite">
+    <div class="empty">Save match context in the dashboard to receive recommendations.</div>
+  </main>
+
+  <footer>
+    <div class="footer-row">
+      <span id="capture-status">Capture stopped</span>
+      <span id="updated-at">Not updated</span>
+    </div>
+    <div class="actions">
+      <button id="refresh" type="button">Refresh advice</button>
+      <a href="/" target="_blank" rel="noopener">Dashboard</a>
+    </div>
+    <small>{{ data_version }} demonstration data</small>
+  </footer>
+</body>
+</html>
+

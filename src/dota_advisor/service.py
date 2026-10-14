@@ -143,13 +143,22 @@ class AdvisorService:
                     skipped_unchanged=True,
                 )
 
+            previous_state = self.state_store.latest_state()
             observation = await self.vision_extractor.extract(crops, self._manual_state)
             state, warnings = self._combine(observation)
             self.state_store.save_state(state)
             recommendations = self.state_store.latest_recommendations()
             passages = self.state_store.latest_retrieval()
             cooldown_elapsed = time.monotonic() - self._last_recommendation_at
-            if force or cooldown_elapsed >= self.settings.recommendation_cooldown_seconds:
+            advice_fields = self.SCREEN_FIELDS + ("hero", "role", "enemy_heroes")
+            advice_state_changed = previous_state is None or any(
+                getattr(previous_state, field) != getattr(state, field) for field in advice_fields
+            )
+            if (
+                force
+                or advice_state_changed
+                or cooldown_elapsed >= self.settings.recommendation_cooldown_seconds
+            ):
                 recommendations, passages = self.generate_recommendations(state)
             elif recommendations:
                 warnings.append(

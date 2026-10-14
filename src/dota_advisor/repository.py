@@ -86,6 +86,7 @@ class SQLiteItemRepository:
 
     def seed(self, items: Sequence[Item], heroes: Sequence[HeroProfile]) -> None:
         with self.database._lock, self.database.connect() as connection:
+            connection.execute("DELETE FROM items")
             connection.executemany(
                 """
                 INSERT INTO items(id, name, patch_version, payload) VALUES (?, ?, ?, ?)

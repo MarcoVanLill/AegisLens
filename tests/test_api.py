@@ -13,6 +13,9 @@ def test_health_manual_state_and_recommendations(settings) -> None:
         assert client.get("/health/live").json() == {"status": "ok"}
         ready = client.get("/health/ready")
         assert ready.status_code == 200
+        catalog = client.get("/api/v1/catalog").json()
+        assert catalog["catalog_item_count"] == 276
+        assert catalog["recommendable_item_count"] == 22
         response = client.put(
             "/api/v1/state/manual",
             json={
@@ -49,3 +52,12 @@ def test_calibration_round_trip(settings) -> None:
         response = client.put("/api/v1/regions", json=configuration)
         assert response.status_code == 200
         assert client.get("/api/v1/regions").json()["notes"] == "adjusted by test"
+
+
+def test_compact_companion_page(settings) -> None:
+    app = create_app(build_container(settings, vision_extractor=FakeVisionExtractor()))
+    with TestClient(app) as client:
+        response = client.get("/compact")
+    assert response.status_code == 200
+    assert "What to buy next" in response.text
+    assert "/static/compact.js" in response.text

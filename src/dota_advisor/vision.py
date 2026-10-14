@@ -6,13 +6,41 @@ from io import BytesIO
 import cv2
 import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter
-from pydantic import ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
 from .models import MatchState, VisionObservation
 
 
 class VisionExtractionError(RuntimeError):
     """A safe provider-facing extraction error that never contains credentials."""
+
+
+class GeminiFieldConfidence(BaseModel):
+    """Provider-safe object schema; Gemini Developer API rejects arbitrary dictionaries."""
+
+    game_time_seconds: float = Field(default=0.0, ge=0.0, le=1.0)
+    gold: float = Field(default=0.0, ge=0.0, le=1.0)
+    level: float = Field(default=0.0, ge=0.0, le=1.0)
+    inventory: float = Field(default=0.0, ge=0.0, le=1.0)
+    visible_enemy_items: float = Field(default=0.0, ge=0.0, le=1.0)
+
+
+class GeminiVisionResponse(BaseModel):
+    """Structured response without JSON Schema ``additionalProperties`` keywords."""
+
+    game_time_seconds: int | None = Field(default=None, ge=0, le=21600)
+    gold: int | None = Field(default=None, ge=0, le=100000)
+    level: int | None = Field(default=None, ge=1, le=30)
+    inventory: list[str] | None = Field(default=None, max_length=20)
+    visible_enemy_items: list[str] = Field(default_factory=list, max_length=30)
+    extraction_confidence: float = Field(ge=0.0, le=1.0)
+    field_confidence: GeminiFieldConfidence
+    warnings: list[str] = Field(default_factory=list, max_length=20)
+
+    def to_observation(self) -> VisionObservation:
+        payload = self.model_dump()
+        payload["field_confidence"] = self.field_confidence.model_dump()
+        return VisionObservation.model_validate(payload)
 
 
 class LocalVisionExtractor:
@@ -159,13 +187,13 @@ class GeminiVisionExtractor:
             contents=parts,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
-                response_schema=VisionObservation,
+                response_schema=GeminiVisionResponse,
                 temperature=0.0,
             ),
         )
         if not response.text:
             raise VisionExtractionError("Gemini returned no structured extraction data.")
-        return VisionObservation.model_validate_json(response.text)
+        return GeminiVisionResponse.model_validate_json(response.text).to_observation()
 
 
 class FallbackVisionExtractor:

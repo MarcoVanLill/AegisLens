@@ -12,6 +12,7 @@ from fastapi.templating import Jinja2Templates
 from PIL import Image, UnidentifiedImageError
 
 from .capture import ScreenCaptureError
+from .catalog import load_catalog_snapshot
 from .config import Settings
 from .container import AppContainer, build_container
 from .models import (
@@ -80,6 +81,14 @@ def create_app(
             context={"data_version": active_container.settings.data_version},
         )
 
+    @app.get("/compact", response_class=HTMLResponse, include_in_schema=False)
+    async def compact(request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(
+            request=request,
+            name="compact.html",
+            context={"data_version": active_container.settings.data_version},
+        )
+
     @app.get("/health/live")
     async def live() -> dict[str, str]:
         return {"status": "ok"}
@@ -101,12 +110,21 @@ def create_app(
 
     @app.get("/api/v1/catalog")
     async def catalog(active: AppContainer = Depends(get_container)) -> dict[str, object]:
+        items = active.item_repository.list_items()
+        snapshot = load_catalog_snapshot()
         return {
             "heroes": active.item_repository.list_heroes(),
-            "items": active.item_repository.list_items(),
+            "items": items,
             "roles": [role.value for role in Role],
             "data_version": active.settings.data_version,
-            "data_notice": "Demonstration data only; not a claim about the current live patch.",
+            "catalog_version": snapshot.version,
+            "catalog_item_count": len(items),
+            "recommendable_item_count": sum(item.recommendable for item in items),
+            "data_notice": (
+                "Complete inventory-recognition snapshot from the linked Fandom item table; "
+                "22 items have demonstration recommendation metadata. This is not a "
+                "live-patch claim."
+            ),
             "confidence_threshold": active.settings.confidence_threshold,
             "capture_interval_seconds": active.settings.capture_interval_seconds,
             "recommendation_cooldown_seconds": active.settings.recommendation_cooldown_seconds,

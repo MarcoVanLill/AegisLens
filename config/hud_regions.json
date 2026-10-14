@@ -1,11 +1,28 @@
 {
   "layout_id": "demo-1920x1080-default-ui-scale",
-  "reference_resolution": [1920, 1080],
+  "reference_resolution": [
+    1920,
+    1080
+  ],
   "notes": "Demonstration coordinates for a standard 16:9 HUD. Calibrate for your UI scale and HUD skin.",
   "regions": {
-    "inventory": {"x": 0.797, "y": 0.835, "width": 0.195, "height": 0.155},
-    "gold": {"x": 0.833, "y": 0.765, "width": 0.085, "height": 0.055},
-    "game_time": {"x": 0.455, "y": 0.012, "width": 0.090, "height": 0.050}
+    "inventory": {
+      "x": 0.5,
+      "y": 0.835,
+      "width": 0.3,
+      "height": 0.155
+    },
+    "gold": {
+      "x": 0.833,
+      "y": 0.9,
+      "width": 0.098,
+      "height": 0.083
+    },
+    "game_time": {
+      "x": 0.433,
+      "y": 0.019,
+      "width": 0.145,
+      "height": 0.095
+    }
   }
 }
-

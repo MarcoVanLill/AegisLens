@@ -9,6 +9,7 @@ from pathlib import Path
 import uvicorn
 from pydantic import TypeAdapter
 
+from .catalog import FandomCatalogClient
 from .config import Settings
 from .container import build_container
 from .models import StrategyDocument
@@ -31,8 +32,30 @@ def _parser() -> argparse.ArgumentParser:
     watch.add_argument("--monitor", type=int, default=None)
     watch.add_argument("--interval", type=float, default=None)
 
+    popup = subcommands.add_parser(
+        "popup",
+        help="Open the native always-on-top recommendation companion",
+    )
+    popup.add_argument("--api-url", default=None)
+    popup.add_argument("--poll-seconds", type=float, default=2.0)
+    popup.add_argument("--no-topmost", action="store_true")
+
+    companion = subcommands.add_parser(
+        "companion",
+        help="Start the local API and always-on-top popup together",
+    )
+    companion.add_argument("--host", default=None)
+    companion.add_argument("--port", type=int, default=None)
+    companion.add_argument("--poll-seconds", type=float, default=2.0)
+    companion.add_argument("--no-topmost", action="store_true")
+
     ingest = subcommands.add_parser("ingest", help="Ingest strategy documents from a JSON array")
     ingest.add_argument("path", type=Path)
+
+    subcommands.add_parser(
+        "sync-items",
+        help="Refresh the bundled item catalog from the Fandom Cargo table",
+    )
 
     subcommands.add_parser("reset-db", help="Delete and rebuild only the configured local database")
     return parser
@@ -88,6 +111,15 @@ def _reset_database(settings: Settings) -> None:
     print(f"Rebuilt {database_path} with {settings.data_version} demonstration data.")
 
 
+def _sync_items(settings: Settings) -> None:
+    snapshot = FandomCatalogClient().refresh_bundled_snapshot()
+    container = build_container(settings)
+    print(
+        f"Refreshed {snapshot.item_count} item records from {snapshot.source_url} "
+        f"and rebuilt {container.database.path}."
+    )
+
+
 def main() -> None:
     args = _parser().parse_args()
     settings = Settings()
@@ -103,8 +135,32 @@ def main() -> None:
     elif args.command == "watch":
         with contextlib.suppress(KeyboardInterrupt):
             asyncio.run(_watch(settings, args.monitor, args.interval))
+    elif args.command == "popup":
+        from .popup import launch_popup
+
+        client_host = "127.0.0.1" if settings.host in {"0.0.0.0", "::"} else settings.host
+        launch_popup(
+            api_url=args.api_url or f"http://{client_host}:{settings.port}",
+            poll_seconds=args.poll_seconds,
+            always_on_top=not args.no_topmost,
+        )
+    elif args.command == "companion":
+        from .companion import run_companion
+
+        try:
+            run_companion(
+                settings,
+                host=args.host,
+                port=args.port,
+                poll_seconds=args.poll_seconds,
+                always_on_top=not args.no_topmost,
+            )
+        except (RuntimeError, ValueError) as exc:
+            raise SystemExit(f"Unable to start the AegisLens companion: {exc}") from exc
     elif args.command == "ingest":
         _ingest(settings, args.path)
+    elif args.command == "sync-items":
+        _sync_items(settings)
     elif args.command == "reset-db":
         _reset_database(settings)
     else:

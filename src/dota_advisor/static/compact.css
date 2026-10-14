@@ -1,0 +1,34 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: #091016;
+  color: #edf3f7;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 300px; min-height: 100vh; background: linear-gradient(160deg, #14232e 0, #091016 48%); }
+header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .85rem 1rem .7rem; border-bottom: 1px solid #293945; }
+h1 { margin: 0; font-size: 1.08rem; letter-spacing: -.02em; }
+.eyebrow { margin: 0 0 .15rem; color: #f1a44b; font-size: .61rem; font-weight: 850; letter-spacing: .17em; }
+.status { padding: .22rem .48rem; border-radius: 99px; font-size: .66rem; font-weight: 800; }
+.status.online { color: #98e8bb; background: #173b2a; }
+.status.offline { color: #ffc1ba; background: #492327; }
+.state-line { padding: .55rem 1rem; color: #aebdc7; background: #0d171f; border-bottom: 1px solid #23333f; font-size: .76rem; }
+.message { margin: .7rem .8rem 0; padding: .55rem .7rem; border-left: 3px solid #f1a44b; background: #392b1a; color: #ffe0ad; font-size: .73rem; }
+main { display: grid; gap: .55rem; padding: .7rem .8rem; }
+.empty { padding: 1.5rem .8rem; color: #91a2ae; text-align: center; font-size: .82rem; }
+.recommendation { position: relative; padding: .7rem .75rem; border: 1px solid #2b3c48; border-radius: .68rem; background: #14212b; box-shadow: 0 8px 20px #0003; }
+.recommendation:first-child { border-color: #b86e3c; background: linear-gradient(135deg, #1d2b34, #182028); }
+.rank { position: absolute; top: .68rem; right: .72rem; color: #f1a44b; font-size: .7rem; font-weight: 900; }
+h2 { margin: 0 .7rem .15rem 0; font-size: .94rem; }
+.score { color: #79d39f; font-size: .72rem; font-weight: 800; }
+.reason { margin: .45rem 0; color: #c4d0d7; font-size: .72rem; line-height: 1.35; }
+.buy-next { margin: 0; color: #fff; font-size: .76rem; font-weight: 730; }
+.threats { margin: .3rem 0 0; color: #8fa5b4; font-size: .65rem; }
+footer { position: sticky; bottom: 0; padding: .65rem .8rem .75rem; border-top: 1px solid #293945; background: #0b141beF; backdrop-filter: blur(8px); }
+.footer-row { display: flex; justify-content: space-between; gap: .5rem; color: #91a2ae; font-size: .64rem; }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin: .55rem 0 .4rem; }
+button, a { min-height: 2.1rem; border: 1px solid #3a4e5d; border-radius: .48rem; background: #172630; color: #edf3f7; padding: .45rem; text-align: center; text-decoration: none; font: inherit; font-size: .72rem; font-weight: 750; cursor: pointer; }
+button:hover, a:hover { border-color: #7d9aaa; }
+footer small { display: block; color: #667985; text-align: center; font-size: .58rem; }
+

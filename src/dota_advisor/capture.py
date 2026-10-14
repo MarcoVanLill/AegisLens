@@ -230,6 +230,7 @@ class CaptureLoop:
                     else:
                         self._status.analysis_count += 1
                         self._status.last_analysis_at = datetime.now(UTC)
+                        self._status.last_analysis_warnings = outcome.warnings
                     self._status.last_error = None
                 except asyncio.CancelledError:
                     raise

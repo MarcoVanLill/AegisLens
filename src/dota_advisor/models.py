@@ -112,6 +112,11 @@ class Item(StrictModel):
     game_phases: list[Literal["early", "mid", "late"]] = Field(default_factory=list)
     patch_version: str
     data_notice: str
+    catalog_category: str = "Curated recommendation"
+    purchasable: bool = True
+    recommendable: bool = True
+    catalog_version: str | None = None
+    source_url: str | None = None
 
 
 class HeroProfile(StrictModel):
@@ -216,4 +221,5 @@ class CaptureStatus(StrictModel):
     last_capture_at: datetime | None = None
     last_analysis_at: datetime | None = None
     last_error: str | None = None
+    last_analysis_warnings: list[str] = Field(default_factory=list, max_length=20)
     debug_crops: dict[str, str] = Field(default_factory=dict)

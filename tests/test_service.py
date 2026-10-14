@@ -76,3 +76,47 @@ async def test_high_confidence_updates_visible_fields(settings) -> None:
     assert outcome.state.gold == 2300
     assert outcome.state.game_time_seconds == 900
     assert outcome.state.inventory == ["Blink Dagger"]
+
+
+async def test_changed_capture_reranks_inside_cooldown(settings) -> None:
+    active_settings = settings.model_copy(update={"recommendation_cooldown_seconds": 300})
+    observation = VisionObservation(
+        game_time_seconds=900,
+        gold=2300,
+        inventory=["Blink Dagger"],
+        extraction_confidence=0.95,
+        field_confidence={
+            "game_time_seconds": 0.95,
+            "gold": 0.95,
+            "level": 0.2,
+            "inventory": 0.9,
+            "visible_enemy_items": 0.2,
+        },
+    )
+    container = build_container(
+        active_settings,
+        vision_extractor=FakeVisionExtractor(observation),
+    )
+    container.advisor.set_manual_state(
+        ManualStateInput(
+            hero="Axe",
+            role=Role.OFFLANE,
+            game_time_seconds=600,
+            gold=1200,
+            inventory=[],
+            enemy_heroes=["Juggernaut"],
+        )
+    )
+    container.advisor.generate_recommendations()
+    recommendation_calls = 0
+    original_generate = container.advisor.generate_recommendations
+
+    def count_generate(state=None):
+        nonlocal recommendation_calls
+        recommendation_calls += 1
+        return original_generate(state)
+
+    container.advisor.generate_recommendations = count_generate  # type: ignore[method-assign]
+    await container.advisor.process_image(_visible_test_image())
+
+    assert recommendation_calls == 1

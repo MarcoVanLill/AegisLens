@@ -1,10 +1,10 @@
-# Dota 2 Item Advisor
+# AegisLens
 
 A local, advisory-only MVP that combines manually supplied match context, optional HUD screenshot extraction, original local strategy notes, and deterministic item ranking. It does not read process memory, inject code, intercept packets, control the mouse or keyboard, purchase items, reveal hidden information, bypass anti-cheat, or render an in-game overlay.
 
 The server binds to `127.0.0.1` by default. The application is designed for Windows host capture with Dota 2 in **borderless-windowed mode**.
 
-> Data notice: every seeded item, hero, cost, component, and strategy record is labeled `demo-2026.1`. It demonstrates the recommendation system and is **not a claim about the current live Dota 2 patch**.
+> Data notice: inventory recognition includes 276 unique records captured from the linked Fandom Items Cargo table on 2026-10-14. The 22 items with scoring tags, components, counters, and role metadata remain explicitly labeled `demo-2026.1`. Neither dataset is a claim about the current live Dota 2 patch.
 
 ## Quick start
 
@@ -14,10 +14,34 @@ Requirements: Python 3.11+ and [`uv`](https://docs.astral.sh/uv/).
 cd "D:\CODE\AI engineering\PythonProjects\AegisLens"
 uv sync --extra dev
 Copy-Item .env.example .env
-uv run uvicorn dota_advisor.main:app --reload
+uv run dota-advisor companion
 ```
 
-Open [http://127.0.0.1:8000](http://127.0.0.1:8000). Manual entry and deterministic recommendations work without Gemini.
+This one command starts the local API and opens the native always-on-top companion. Click **Dashboard** in the popup (or open [http://127.0.0.1:8000](http://127.0.0.1:8000)) to enter match context and configure capture. Manual entry and deterministic recommendations work without Gemini.
+
+## Always-on-top companion
+
+Start both the server and popup from one PowerShell window:
+
+```powershell
+uv run dota-advisor companion
+```
+
+This opens a native 330×370 Tkinter companion at the right side of the screen. It polls the local API every two seconds and shows a compact ranked queue containing only the next component to purchase, its target item, and whether it is affordable. **Always on top** is enabled inside the window and can be toggled without PowerToys.
+
+The `companion` command starts the API automatically and shuts down the API it started when the popup closes. If an AegisLens API is already running on the configured address, it attaches to that server and leaves it running. Dota 2 should remain in borderless-windowed mode; exclusive fullscreen can cover normal Windows topmost windows.
+
+The same compact presentation is available in a browser at [http://127.0.0.1:8000/compact](http://127.0.0.1:8000/compact), but the native launcher is the option that enforces always-on-top.
+
+Optional launcher settings:
+
+```powershell
+uv run dota-advisor popup --poll-seconds 2
+uv run dota-advisor popup --no-topmost
+uv run aegislens-popup
+```
+
+The standalone `popup` launchers above are useful only when the API is already running. For normal use, prefer `uv run dota-advisor companion`.
 
 Optional screenshot extraction:
 
@@ -42,13 +66,31 @@ Only the inventory, gold, and game-time regions participate in change detection.
 
 ```powershell
 uv run dota-advisor serve --reload
+uv run dota-advisor companion
+uv run dota-advisor popup
 uv run dota-advisor capture-once --monitor 1 --force
 uv run dota-advisor watch --monitor 1 --interval 5
+uv run dota-advisor sync-items
 uv run dota-advisor ingest .\my-strategy-notes.json
 uv run dota-advisor reset-db
 ```
 
-`ingest` expects a JSON array matching the `StrategyDocument` model. `reset-db` deletes only the configured SQLite database and its WAL sidecars, then rebuilds seeded demonstration data.
+`sync-items` refreshes the checked-in inventory-recognition snapshot through the Fandom Cargo API and refuses to replace it if fewer than 200 unique active records are returned. Restart the server after refreshing. `ingest` expects a JSON array matching the `StrategyDocument` model. `reset-db` deletes only the configured SQLite database and its WAL sidecars, then rebuilds the snapshot and demonstration strategy data.
+
+## Item catalog scope
+
+The inventory selector contains all 276 unique entries returned by the active filter used on the supplied [Fandom Items page](https://dota2.fandom.com/wiki/Items), including shop items, components, neutral items, collectibles, and Roshan or Tormentor rewards. Entries are grouped by their source category.
+
+Source and transformation details are recorded in [`DATA_ATTRIBUTION.md`](DATA_ATTRIBUTION.md). No wiki prose or images are copied into the catalog.
+
+Catalog inclusion and recommendation eligibility are intentionally separate:
+
+- All 276 entries can be selected as current inventory and recognized by exact name.
+- Non-purchasable entries such as neutral items and Roshan rewards are labeled accordingly.
+- Only the 22 items with reviewed demonstration tags, roles, counters, components, and game phases participate in recommendation ranking.
+- A dated Fandom snapshot is reproducible but may lag a Dota patch. Run `uv run dota-advisor sync-items` to refresh it, then review the diff before committing.
+
+This avoids the misleading behavior of recommending zero-cost neutral drops or ranking hundreds of unannotated items as if they had reviewed strategy metadata.
 
 ## Configuration
 
@@ -107,11 +149,12 @@ Only one capture loop may run at a time. Application shutdown cancels it cleanly
 
 ## Updating demo data for a real patch
 
-1. Create a new explicit version string; do not overwrite the meaning of `demo-2026.1`.
-2. Verify item costs, components, tags, and hero profiles against authorized current sources.
-3. Add or revise original strategy notes in `seeds.py`, preserving source IDs and version metadata.
-4. Update `DOTA_ADVISOR_DATA_VERSION`, rebuild with `uv run dota-advisor reset-db`, and run tests.
-5. Review scoring behavior with curated match scenarios before presenting it as patch-specific advice.
+1. Run `uv run dota-advisor sync-items` to refresh names, costs, categories, and purchasability from the linked Fandom Cargo table.
+2. Review the catalog diff and create a new explicit recommendation-data version; do not overwrite the meaning of `demo-2026.1`.
+3. Verify item costs, components, tags, and hero profiles against authorized current sources.
+4. Add or revise original strategy notes in `seeds.py`, preserving source IDs and version metadata.
+5. Update `DOTA_ADVISOR_DATA_VERSION`, rebuild with `uv run dota-advisor reset-db`, and run tests.
+6. Review scoring behavior with curated match scenarios before presenting it as patch-specific advice.
 
 The `StrategyRetriever` protocol is intentionally independent of SQLite FTS5 so a future embedding retriever can be added without changing the recommendation engine.
 
@@ -122,4 +165,3 @@ uv run ruff format --check .
 uv run ruff check .
 uv run pytest
 ```
-

@@ -48,7 +48,15 @@ async function loadCatalog() {
   $("#hero").innerHTML = heroes;
   $("#enemies").innerHTML = heroes;
   $("#role").innerHTML = config.roles.map((role) => `<option value="${escapeHtml(role)}">${escapeHtml(role.replaceAll("_", " "))}</option>`).join("");
-  $("#inventory").innerHTML = config.items.map((item) => `<option>${escapeHtml(item.name)}</option>`).join("");
+  const itemGroups = new Map();
+  config.items.forEach((item) => {
+    const category = item.catalog_category || "Other";
+    if (!itemGroups.has(category)) itemGroups.set(category, []);
+    itemGroups.get(category).push(item);
+  });
+  $("#inventory").innerHTML = Array.from(itemGroups.entries()).map(([category, items]) =>
+    `<optgroup label="${escapeHtml(category)}">${items.map((item) => `<option>${escapeHtml(item.name)}</option>`).join("")}</optgroup>`
+  ).join("");
   $("#interval").value = config.capture_interval_seconds;
 }
 
@@ -179,4 +187,3 @@ document.addEventListener("DOMContentLoaded", async () => {
   try { await Promise.all([loadCatalog(), loadMonitors()]); await poll(); } catch (error) { toast(error.message, true); }
   setInterval(poll, 2000);
 });
-

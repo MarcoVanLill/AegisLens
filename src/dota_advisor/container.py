@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .capture import CaptureService, ChangeDetector
+from .catalog import build_item_catalog
 from .config import Settings, ensure_runtime_directories
 from .protocols import VisionExtractor
 from .recommendation import DeterministicExplanationService, RecommendationEngine
@@ -38,7 +39,7 @@ def build_container(
     database = Database(active_settings.database_path)
     database.initialize()
     item_repository = SQLiteItemRepository(database)
-    item_repository.seed(DEMO_ITEMS, DEMO_HEROES)
+    item_repository.seed(build_item_catalog(DEMO_ITEMS), DEMO_HEROES)
     strategy_retriever = SQLiteStrategyRetriever(database)
     strategy_retriever.ingest(DEMO_STRATEGIES)
     state_store = SQLiteMatchStateStore(database)
